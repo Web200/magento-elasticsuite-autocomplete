@@ -1,0 +1,28 @@
+{
+    "name": "web200/magento-elasticsuite-autocomplete",
+    "description": "Magento 2 Module to speed autocomplete search",
+    "require": {
+        "php": "^7.0"
+    },
+    "type": "magento2-module",
+    "license": [
+        "OSL-3.0",
+        "AFL-3.0"
+    ],
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Web200\\ElasticsuiteAutocomplete\\": ""
+        }
+    },
+    "extra": {
+        "map": [
+            [
+                "pub/search.php",
+                "pub/search.php"
+            ]
+        ]
+    }
+}
