@@ -4,30 +4,25 @@
     "require": {
         "php": "^7.0"
     },
-    "type": "magento2-component",
+    "type": "magento2-module",
     "license": [
         "OSL-3.0",
         "AFL-3.0"
     ],
-    "replace": {
-        "web200/module-elasticsuite-autocomplete": "self.version"
-    },
     "autoload": {
         "files": [
-            "src/module-elasticsuite-autocomplete/registration.php"
+            "registration.php"
         ],
         "psr-4": {
-            "Web200\\ElasticsuiteAutocomplete\\": "src/module-elasticsuite-autocomplete"
+            "Web200\\ElasticsuiteAutocomplete\\": ""
         }
     },
     "extra": {
         "map": [
             [
-                "src/pub/search.php",
+                "pub/search.php",
                 "pub/search.php"
             ]
         ]
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+    }
 }
