@@ -23,4 +23,4 @@ $state = $obj->get('Magento\Framework\App\State');
 $state->setAreaCode('frontend');
 
 header('Content-Type: application/json');
-echo $obj->get('Web200\ElasticsuiteAutocomplete\Model\Render')->execute();
+echo json_encode($obj->get('Web200\ElasticsuiteAutocomplete\Model\Render')->execute());

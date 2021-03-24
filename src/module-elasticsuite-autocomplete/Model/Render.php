@@ -113,9 +113,7 @@ class Render
      */
     public function execute()
     {
-        $temp =  $this->json->serialize($this->parseQuery($this->query()));
-
-        return $temp;
+        return $this->parseQuery($this->query());
     }
 
     /**
