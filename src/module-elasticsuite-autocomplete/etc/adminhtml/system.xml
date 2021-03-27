@@ -1,0 +1,22 @@
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="smile_elasticsuite_autocomplete_settings">
+            <group id="term_autocomplete" translate="label" type="text" sortOrder="10" showInDefault="0" showInWebsite="0" showInStore="0" />
+            <group id="product_autocomplete" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Product Autocomplete</label>
+                <field id="is_active" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+            <group id="product_attribute_autocomplete" translate="label" type="text" showInDefault="0" showInWebsite="0" showInStore="0" />
+            <group id="category_autocomplete" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Category Autocomplete</label>
+                <field id="is_active" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

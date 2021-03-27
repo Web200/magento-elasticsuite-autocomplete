@@ -34,7 +34,12 @@ location ~ ^/(index|get|static|errors/report|errors/404|errors/503|health_check|
 
 ## Use 
 
-If you install with cloning repository don't forget to copy search.php file (file is copied if you use composer install)
+- Reindex Magento Catalog
+```
+php bin/magento indexer:reindex
+```
+
+If you clone the repository don't forget to copy /pub/search.php file (file is copied automatically if you use composer install)
 
 ```
 # To test the module you only need to install it, and edit this file (by overriding in your theme module):
@@ -53,15 +58,15 @@ If you install with cloning repository don't forget to copy search.php file (fil
 This module use :
 - Elasticsearch response
 - Load the minimum magento class to display product (price and image helper)
-- Return only products (no categories or other attributes)
+- Return only products and categories (no other attributes)
 
-To improve speed I try two way of routing :
-- Default magento 2 routing way (declare routes.xml and use controller)
+To improve speed I try two ways of routing :
+- Default magento 2 routing way (by declaring routes.xml and use controller)
 - No routing way (use a search.php file in /pub directory)
 
 ## Benchmarks
 
-For benchmarking I use Magento 2.4.2 with sample data and all cache are active.
+For benchmarking, I use Magento 2.4.2 with sample data and all cache are active.
 Local ubuntu with mysql / elasticsearch / apache (no docker use)
 
 Results :

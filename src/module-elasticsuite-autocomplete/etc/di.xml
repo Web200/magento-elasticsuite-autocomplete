@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Smile\ElasticsuiteCore\Index\DataSourceResolver">
+        <arguments>
+            <argument name="datasources" xsi:type="array">
+                <item name="catalog_product" xsi:type="array">
+                    <item name="url" xsi:type="object">Web200\ElasticsuiteAutocomplete\Model\Indexer\Product\Fulltext\Datasource\Url</item>
+                </item>
+                <item name="catalog_category" xsi:type="array">
+                    <item name="url" xsi:type="object">Web200\ElasticsuiteAutocomplete\Model\Indexer\Category\Fulltext\Datasource\Url</item>
+                    <item name="breadcrumbs" xsi:type="object">Web200\ElasticsuiteAutocomplete\Model\Indexer\Category\Fulltext\Datasource\Breadcrumbs</item>
+                </item>
+            </argument>
+        </arguments>
+    </type>
+</config>

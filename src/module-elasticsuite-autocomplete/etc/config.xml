@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <smile_elasticsuite_autocomplete_settings>
+            <product_autocomplete>
+                <is_active>1</is_active>
+            </product_autocomplete>
+            <category_autocomplete>
+                <is_active>1</is_active>
+            </category_autocomplete>
+        </smile_elasticsuite_autocomplete_settings>
+    </default>
+</config>

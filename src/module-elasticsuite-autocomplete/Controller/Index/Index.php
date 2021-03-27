@@ -8,7 +8,7 @@ use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Controller\ResultInterface;
-use Web200\ElasticsuiteAutocomplete\Model\Render;
+use Web200\ElasticsuiteAutocomplete\Model\Query;
 
 /**
  * Class Index
@@ -22,11 +22,11 @@ use Web200\ElasticsuiteAutocomplete\Model\Render;
 class Index implements HttpGetActionInterface
 {
     /**
-     * Render
+     * Query
      *
-     * @var Render $render
+     * @var Query $query
      */
-    protected $render;
+    protected $query;
     /**
      * Result json factory
      *
@@ -37,14 +37,14 @@ class Index implements HttpGetActionInterface
     /**
      * Index constructor.
      *
-     * @param Render      $render
+     * @param Query      $query
      * @param JsonFactory $resultJsonFactory
      */
     public function __construct(
-        Render $render,
+        Query $query,
         JsonFactory $resultJsonFactory
     ) {
-        $this->render            = $render;
+        $this->query            = $query;
         $this->resultJsonFactory = $resultJsonFactory;
     }
 
@@ -56,7 +56,7 @@ class Index implements HttpGetActionInterface
     public function execute()
     {
         $resultJson = $this->resultJsonFactory->create();
-        $resultJson->setData($this->render->execute());
+        $resultJson->setData($this->query->execute());
 
         return $resultJson;
     }

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
     <router id="standard">
-        <route id="autocomplete-search" frontName="autocomplete">
+        <route id="autocomplete_search" frontName="autocomplete">
             <module name="Web200_ElasticsuiteAutocomplete" />
         </route>
     </router>

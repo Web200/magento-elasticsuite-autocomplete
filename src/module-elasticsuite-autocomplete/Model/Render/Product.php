@@ -5,14 +5,9 @@ declare(strict_types=1);
 namespace Web200\ElasticsuiteAutocomplete\Model\Render;
 
 use Magento\Catalog\Helper\Image;
-use Magento\Catalog\Model\Product as ModelProduct;
-use Magento\Catalog\Model\Product\Url;
 use Magento\Catalog\Model\ProductFactory;
-use Magento\CatalogUrlRewrite\Model\ProductUrlPathGenerator;
 use Magento\Customer\Model\Session;
-use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\UrlInterface;
-use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
 /**
@@ -26,18 +21,6 @@ use Magento\Store\Model\StoreManagerInterface;
  */
 class Product
 {
-    /**
-     * Product url
-     *
-     * @var Url $productUrl
-     */
-    protected $productUrl;
-    /**
-     * scopeConfig
-     *
-     * @var ScopeConfigInterface $scopeConfig
-     */
-    protected $scopeConfig;
     /**
      * Store manager
      *
@@ -57,7 +40,7 @@ class Product
      */
     protected $productFactory;
     /**
-     * customerSession
+     * Customer session
      *
      * @var Session $customerSession
      */
@@ -66,26 +49,20 @@ class Product
     /**
      * Product constructor.
      *
-     * @param Url                   $productUrl
-     * @param ScopeConfigInterface  $scopeConfig
      * @param StoreManagerInterface $storeManager
      * @param Image                 $imageHelper
      * @param Session               $customerSession
      * @param ProductFactory        $productFactory
      */
     public function __construct(
-        Url $productUrl,
-        ScopeConfigInterface $scopeConfig,
         StoreManagerInterface $storeManager,
         Image $imageHelper,
         Session $customerSession,
         ProductFactory $productFactory
     ) {
-        $this->productUrl     = $productUrl;
-        $this->scopeConfig    = $scopeConfig;
-        $this->storeManager   = $storeManager;
-        $this->imageHelper    = $imageHelper;
-        $this->productFactory = $productFactory;
+        $this->storeManager    = $storeManager;
+        $this->imageHelper     = $imageHelper;
+        $this->productFactory  = $productFactory;
         $this->customerSession = $customerSession;
     }
 
@@ -99,18 +76,13 @@ class Product
     public function render(array $productData)
     {
         /** @var string[] $product */
-        $product = [];
-
+        $product          = [];
         $product['type']  = 'product';
         $product['title'] = $productData['_source']['name'][0];
-        $product['url']   = $this->generateProductUrl($this->getFirstResult($productData['_source']['url_key']));
+        $product['url']   = $this->generateProductUrl($this->getFirstResult($productData['_source']['request_path']));
         $product['sku']   = $this->getFirstResult($productData['_source']['sku']);
         $product['image'] = $this->generateImageUrl($this->getFirstResult($productData['_source']['image']));
         $product['price'] = $this->getPrice($productData);
-
-        //$product['type_id'] = $productData['_source']['type_id'];
-        //$product['url_key'] = $this->getFirstResult($productData['_source']['url_key']);
-        //$product['name']    = $productData['_source']['name'];
 
         return $product;
     }
@@ -158,25 +130,13 @@ class Product
     /**
      * Generate product url
      *
-     * @param string $urlKey
+     * @param string $requestPath
      *
      * @return string
      */
-    protected function generateProductUrl(string $urlKey): string
+    protected function generateProductUrl(string $requestPath): string
     {
-        /** @var string $url */
-        $url = $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB) . $urlKey;
-
-        $urlSuffix = (string)$this->scopeConfig->getValue(
-            ProductUrlPathGenerator::XML_PATH_PRODUCT_URL_SUFFIX,
-            ScopeInterface::SCOPE_STORE
-        );
-
-        if ($urlSuffix !== '') {
-            $url .= $urlSuffix;
-        }
-
-        return $url;
+        return $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB) . $requestPath;
     }
 
     /**
@@ -188,7 +148,6 @@ class Product
      */
     protected function generateImageUrl(string $imagePath): string
     {
-        /** @var ModelProduct $product */
         $product = $this->productFactory->create();
 
         return $this->imageHelper->init($product, 'smile_elasticsuite_autocomplete_product_image')

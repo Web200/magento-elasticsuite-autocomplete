@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Web200\ElasticsuiteAutocomplete\Model;
+namespace Web200\ElasticsuiteAutocomplete\Model\Query;
 
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\Serialize\Serializer\Json;
@@ -10,20 +10,20 @@ use Magento\Search\Model\QueryFactory;
 use Magento\Store\Model\StoreManagerInterface;
 use Smile\ElasticsuiteCore\Client\Client;
 use Smile\ElasticsuiteCore\Search\Adapter\Elasticsuite\Request\Mapper;
-use Smile\ElasticsuiteCore\Search\Request\BucketInterface;
 use Smile\ElasticsuiteCore\Search\Request\Builder;
-use Web200\ElasticsuiteAutocomplete\Model\Render\Product;
+use Web200\ElasticsuiteAutocomplete\Model\Render\Category as CategoryRender;
+use Web200\ElasticsuiteAutocomplete\Provider\Config;
 
 /**
- * Class Render
+ * Class Category
  *
- * @package   Web200\ElasticsuiteAutocomplete\Model
+ * @package   Web200\ElasticsuiteAutocomplete\Model\Query
  * @author    Web200 <contact@web200.fr>
  * @copyright 2021 Web200
  * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  * @link      https://www.web200.fr/
  */
-class Render
+class Category
 {
     /**
      * Client
@@ -62,37 +62,45 @@ class Render
      */
     protected $json;
     /**
-     * Product render
+     * Category render
      *
-     * @var Product $productRender
+     * @var CategoryRender $categoryRender
      */
-    protected $productRender;
+    protected $categoryRender;
     /**
      * Query factory
      *
      * @var QueryFactory $queryFactory
      */
     protected $queryFactory;
+    /**
+     * Config
+     *
+     * @var Config $config
+     */
+    protected $config;
 
     /**
-     * Render constructor.
+     * Category constructor.
      *
+     * @param Config                $config
      * @param Builder               $requestBuilder
      * @param Mapper                $mapper
      * @param CacheInterface        $cache
      * @param StoreManagerInterface $storeManager
      * @param Json                  $json
-     * @param Product               $productRender
+     * @param CategoryRender        $categoryRender
      * @param QueryFactory          $queryFactory
      * @param Client                $client
      */
     public function __construct(
+        Config $config,
         Builder $requestBuilder,
         Mapper $mapper,
         CacheInterface $cache,
         StoreManagerInterface $storeManager,
         Json $json,
-        Product $productRender,
+        CategoryRender $categoryRender,
         QueryFactory $queryFactory,
         Client $client
     ) {
@@ -102,8 +110,9 @@ class Render
         $this->storeManager   = $storeManager;
         $this->cache          = $cache;
         $this->json           = $json;
-        $this->productRender  = $productRender;
-        $this->queryFactory = $queryFactory;
+        $this->categoryRender = $categoryRender;
+        $this->queryFactory   = $queryFactory;
+        $this->config         = $config;
     }
 
     /**
@@ -126,25 +135,19 @@ class Render
         /** @var int $storeId */
         $storeId = $this->storeManager->getStore()->getId();
         /** @var string $key */
-        $key = 'smile_autocomplete_query:' . $storeId;
+        $key = 'smile_autocomplete_category_query:' . $storeId;
         /** @var string $searchRequestJson */
         $searchRequestJson = $this->cache->load($key);
         if ($searchRequestJson === false) {
-            /** @var string[] $facets */
-            $facets  = [
-                ['name' => 'attribute_set_id', 'type' => BucketInterface::TYPE_TERM, 'size' => 0],
-                ['name' => 'indexed_attributes', 'type' => BucketInterface::TYPE_TERM, 'size' => 0],
-            ];
             $request = $this->requestBuilder->create(
                 $storeId,
-                'catalog_product_autocomplete',
+                'category_search_container',
                 0,
-                10,
+                $this->config->getCategoryAutocompleteMaxSize(),
                 'product',
                 [],
                 [],
-                [],
-                $facets
+                []
             );
             /** @var string[] $searchRequest */
             $searchRequest = [
@@ -171,9 +174,10 @@ class Render
 
         /** @var string[] $query */
         $query = $this->buildQuery();
-        if (isset($query['body']['query']['bool']['must']['bool']['filter']['multi_match'])) {
-            $query['body']['query']['bool']['must']['bool']['filter']['multi_match']['query'] = $searchString;
-            $query['body']['query']['bool']['must']['bool']['must']['multi_match']['query']   = $searchString;
+        if (isset($query['body']['query']['bool']['must']['bool']['should'])) {
+            foreach ($query['body']['query']['bool']['must']['bool']['should'] as &$should) {
+                $should['multi_match']['query'] = $searchString;
+            }
         }
 
         return $this->client->search($query);
@@ -182,7 +186,9 @@ class Render
     /**
      * Parse query
      *
-     * @return array
+     * @param string[] $result
+     *
+     * @return string[]
      */
     protected function parseQuery(array $result): array
     {
@@ -192,11 +198,12 @@ class Render
 
         /** @var string[] $final */
         $final = [];
-        foreach ($result['hits']['hits'] as $product) {
-            if (!isset($product['_source'])) {
+        /** @var string[] $category */
+        foreach ($result['hits']['hits'] as $category) {
+            if (!isset($category['_source'])) {
                 continue;
             }
-            $final[] = $this->productRender->render($product);
+            $final[] = $this->categoryRender->render($category);
         }
 
         return $final;
