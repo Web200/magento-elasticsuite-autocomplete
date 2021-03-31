@@ -43,7 +43,7 @@ class Url implements DatasourceInterface
      */
     public function addData($storeId, array $indexData)
     {
-        $requestPathData = $this->getRequestPathData((int)$storeId);
+        $requestPathData = $this->getRequestPathData((int)$storeId, array_keys($indexData));
         /** @var string[] $data */
         foreach ($requestPathData as $data) {
             $indexData[(int)$data['entity_id']]['request_path'] = $data['request_path'];
@@ -55,17 +55,19 @@ class Url implements DatasourceInterface
     /**
      * Get request path data
      *
-     * @param int $storeId
+     * @param int   $storeId
+     * @param array $productId
      *
      * @return string[]
      */
-    protected function getRequestPathData(int $storeId): array
+    protected function getRequestPathData(int $storeId, array $productId): array
     {
         $connection = $this->resource->getConnection();
         $select     = $connection->select()->from(
             ['url_rewrite' => $connection->getTableName('url_rewrite')],
             ['request_path', 'entity_id']
         )->where('entity_type = ?', 'product')
+            ->where('entity_id IN (?)', $productId)
             ->where('store_id = ?', $storeId)
             ->where('redirect_type = 0')
             ->where('metadata IS NULL');

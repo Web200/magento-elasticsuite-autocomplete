@@ -9,6 +9,7 @@ use Magento\Catalog\Model\ProductFactory;
 use Magento\Customer\Model\Session;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Smile\ElasticsuiteCatalog\Model\Autocomplete\Product\AttributeConfig;
 
 /**
  * Class Product
@@ -45,16 +46,24 @@ class Product
      * @var Session $customerSession
      */
     protected $customerSession;
+    /**
+     * Attribute config
+     *
+     * @var AttributeConfig
+     */
+    protected $attributeConfig;
 
     /**
      * Product constructor.
      *
+     * @param AttributeConfig       $attributeConfig
      * @param StoreManagerInterface $storeManager
      * @param Image                 $imageHelper
      * @param Session               $customerSession
      * @param ProductFactory        $productFactory
      */
     public function __construct(
+        AttributeConfig $attributeConfig,
         StoreManagerInterface $storeManager,
         Image $imageHelper,
         Session $customerSession,
@@ -64,6 +73,7 @@ class Product
         $this->imageHelper     = $imageHelper;
         $this->productFactory  = $productFactory;
         $this->customerSession = $customerSession;
+        $this->attributeConfig = $attributeConfig;
     }
 
     /**
@@ -84,6 +94,14 @@ class Product
         $product['image'] = $this->generateImageUrl($this->getFirstResult($productData['_source']['image']));
         $product['price'] = $this->getPrice($productData);
 
+
+        $additionalAttributes = $this->attributeConfig->getAdditionalSelectedAttributes();
+        foreach ($additionalAttributes as $key) {
+            if (isset($productData['_source'][$key])) {
+                $product[$key] = $productData['_source'][$key];
+            }
+        }
+
         return $product;
     }
 
@@ -96,6 +114,10 @@ class Product
      */
     protected function getPrice(array $productData)
     {
+        if (!isset($productData['_source']['price'])) {
+            return '';
+        }
+
         /** @var string[] $prices */
         $prices = [];
         foreach ($productData['_source']['price'] as $price) {

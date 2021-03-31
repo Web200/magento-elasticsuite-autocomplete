@@ -1,6 +1,6 @@
 # Magento 2 Elastisuite Autocomplete speed up
 
-WIP Magento 2 Module to speed autocomplete search
+Magento 2 Module to speed autocomplete search
 
 ## Installation
 
@@ -58,7 +58,7 @@ If you clone the repository don't forget to copy /pub/search.php file (file is c
 This module use :
 - Elasticsearch response
 - Load the minimum magento class to display product (price and image helper)
-- Return only products and categories (no other attributes)
+- Return only products (with additional_attributes), categories
 
 To improve speed I try two ways of routing :
 - Default magento 2 routing way (by declaring routes.xml and use controller)
