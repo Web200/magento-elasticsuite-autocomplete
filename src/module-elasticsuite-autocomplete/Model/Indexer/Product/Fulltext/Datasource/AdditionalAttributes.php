@@ -102,6 +102,10 @@ class AdditionalAttributes implements DatasourceInterface
 
         /** @var string $attributeCode */
         foreach ($this->attributeConfig->getAdditionalSelectedAttributes() as $attributeCode) {
+            foreach (array_keys($indexData) as $productId) {
+                $indexData[$productId][$attributeCode] = '';
+            }
+
             $attribute = $this->eavAttributeRepositoryInterface->get(Product::ENTITY, $attributeCode);
             $values    = $this->getValueFromAttributes((int)$storeId, $attribute, array_keys($indexData));
             if ($attribute->getSourceModel() !== null) {
@@ -173,7 +177,7 @@ class AdditionalAttributes implements DatasourceInterface
 
         foreach ($values as &$value) {
             if (isset($options[$value['value']])) {
-                $value['value'] = $options[$value['value']];
+                $value['value'] = (string)$options[$value['value']];
             }
         }
 

@@ -7,6 +7,7 @@ namespace Web200\ElasticsuiteAutocomplete\Model\Render;
 use Magento\Catalog\Helper\Image;
 use Magento\Catalog\Model\ProductFactory;
 use Magento\Customer\Model\Session;
+use Magento\Framework\Pricing\Helper\Data;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Smile\ElasticsuiteCatalog\Model\Autocomplete\Product\AttributeConfig;
@@ -52,12 +53,19 @@ class Product
      * @var AttributeConfig
      */
     protected $attributeConfig;
+    /**
+     * Data
+     *
+     * @var Data $priceHelper
+     */
+    protected $priceHelper;
 
     /**
      * Product constructor.
      *
      * @param AttributeConfig       $attributeConfig
      * @param StoreManagerInterface $storeManager
+     * @param Data                  $priceHelper
      * @param Image                 $imageHelper
      * @param Session               $customerSession
      * @param ProductFactory        $productFactory
@@ -65,6 +73,7 @@ class Product
     public function __construct(
         AttributeConfig $attributeConfig,
         StoreManagerInterface $storeManager,
+        Data $priceHelper,
         Image $imageHelper,
         Session $customerSession,
         ProductFactory $productFactory
@@ -74,6 +83,7 @@ class Product
         $this->productFactory  = $productFactory;
         $this->customerSession = $customerSession;
         $this->attributeConfig = $attributeConfig;
+        $this->priceHelper     = $priceHelper;
     }
 
     /**
@@ -86,14 +96,15 @@ class Product
     public function render(array $productData)
     {
         /** @var string[] $product */
-        $product          = [];
-        $product['type']  = 'product';
-        $product['title'] = $productData['_source']['name'][0];
-        $product['url']   = $this->generateProductUrl($this->getFirstResult($productData['_source']['request_path']));
-        $product['sku']   = $this->getFirstResult($productData['_source']['sku']);
-        $product['image'] = $this->generateImageUrl($this->getFirstResult($productData['_source']['image']));
-        $product['price'] = $this->getPrice($productData);
-
+        $product                = [];
+        $product['type']        = 'product';
+        $product['type_id']     = $productData['_source']['type_id'];
+        $product['title']       = $productData['_source']['name'][0];
+        $product['url']         = $this->generateProductUrl($this->getFirstResult($productData['_source']['request_path']));
+        $product['sku']         = $this->getFirstResult($productData['_source']['sku']);
+        $product['image']       = $this->generateImageUrl($this->getFirstResult($productData['_source']['image']));
+        $product['price_value'] = $this->getPriceValue($productData);
+        $product['price']       = $this->getPrice($product);
 
         $additionalAttributes = $this->attributeConfig->getAdditionalSelectedAttributes();
         foreach ($additionalAttributes as $key) {
@@ -106,31 +117,53 @@ class Product
     }
 
     /**
-     * Get price
+     * Get price value
      *
      * @param array $productData
      *
      * @return mixed
      */
-    protected function getPrice(array $productData)
+    protected function getPriceValue(array $productData)
     {
         if (!isset($productData['_source']['price'])) {
             return '';
         }
 
-        /** @var string[] $prices */
         $prices = [];
         foreach ($productData['_source']['price'] as $price) {
             $prices[$price['customer_group_id']] = $price;
         }
 
+        $priceToDisplay = 'final_price';
+        if ($productData['_source']['type_id'] === 'configurable') {
+            $priceToDisplay = 'min_price';
+        }
+
         /** @var int $customerGroupId */
         $customerGroupId = $this->customerSession->getCustomerGroupId();
         if ($customerGroupId > 0 && isset($prices[$customerGroupId])) {
-            return $prices[$customerGroupId]['final_price'];
+            return $prices[$customerGroupId][$priceToDisplay];
         }
 
-        return $prices[$customerGroupId]['final_price'];
+        return $prices[$customerGroupId][$priceToDisplay];
+    }
+
+    /**
+     * Get price
+     *
+     * @param string[] $product
+     *
+     * @return string
+     */
+    protected function getPrice(array $product): string
+    {
+        $price = $this->priceHelper->currency($product['price_value']);
+
+        if ($product['type_id'] === 'configurable') {
+            return __('As low as') . ' ' . $price;
+        }
+
+        return $price;
     }
 
     /**

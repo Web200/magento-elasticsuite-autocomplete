@@ -4,7 +4,7 @@ Magento 2 Module to speed autocomplete search
 
 ## Installation
 
-###Composer
+### Composer
 ```
 $ composer require "web200/magento-elasticsuite-autocomplete":"*"
 ```

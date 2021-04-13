@@ -186,6 +186,12 @@ class Product
             $query['body']['query']['bool']['must']['bool']['must']['multi_match']['query']   = $searchString;
         }
 
+        if (isset($query['body']['query']['bool']['must']['bool']['should'])) {
+            foreach ($query['body']['query']['bool']['must']['bool']['should'] as &$should) {
+                $should['multi_match']['query'] = $searchString;
+            }
+        }
+
         return $this->client->search($query);
     }
 
