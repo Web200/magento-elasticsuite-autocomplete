@@ -103,8 +103,9 @@ class Product
         $product['url']         = $this->generateProductUrl($this->getFirstResult($productData['_source']['request_path']));
         $product['sku']         = $this->getFirstResult($productData['_source']['sku']);
         $product['image']       = $this->generateImageUrl($this->getFirstResult($productData['_source']['image']));
-        $product['price_value'] = $this->getPriceValue($productData);
-        $product['price']       = $this->getPrice($product);
+        list($product['regular_price_value'], $product['price_value'], $product['promotion_percentage']) = $this->getPriceValue($productData);
+        $product['price']       = $this->getPrice($product, 'price_value');
+        $product['regular_price']  = $this->getPrice($product, 'regular_price_value');
 
         $additionalAttributes = $this->attributeConfig->getAdditionalSelectedAttributes();
         foreach ($additionalAttributes as $key) {
@@ -117,7 +118,7 @@ class Product
     }
 
     /**
-     * Get price value
+     * Get price
      *
      * @param array $productData
      *
@@ -126,38 +127,45 @@ class Product
     protected function getPriceValue(array $productData)
     {
         if (!isset($productData['_source']['price'])) {
-            return '';
+            return ['', '', ''];
         }
 
+        /** @var string[] $prices */
         $prices = [];
         foreach ($productData['_source']['price'] as $price) {
             $prices[$price['customer_group_id']] = $price;
         }
 
-        $priceToDisplay = 'final_price';
-        if ($productData['_source']['type_id'] === 'configurable') {
-            $priceToDisplay = 'min_price';
-        }
-
         /** @var int $customerGroupId */
         $customerGroupId = $this->customerSession->getCustomerGroupId();
-        if ($customerGroupId > 0 && isset($prices[$customerGroupId])) {
-            return $prices[$customerGroupId][$priceToDisplay];
+        if ($customerGroupId >= 0 && isset($prices[$customerGroupId])) {
+            $regularPrice =  $prices[$customerGroupId]['final_price'];
+            $finalPrice =  $prices[$customerGroupId]['price'];
+            $promotion = 0;
+            if ($regularPrice != $finalPrice && $regularPrice >0) {
+                $promotion = round(100 - ($finalPrice*100 /$regularPrice), 2);
+            }
+            return [
+                $regularPrice,
+                $finalPrice,
+                $promotion
+            ];
         }
 
-        return $prices[$customerGroupId][$priceToDisplay];
+        return ['', '' , ''];
     }
 
     /**
      * Get price
      *
      * @param string[] $product
+     * @param string   $key
      *
      * @return string
      */
-    protected function getPrice(array $product): string
+    protected function getPrice(array $product, string $key): string
     {
-        $price = $this->priceHelper->currency($product['price_value']);
+        $price = $this->priceHelper->currency($product[$key]);
 
         if ($product['type_id'] === 'configurable') {
             return __('As low as') . ' ' . $price;
