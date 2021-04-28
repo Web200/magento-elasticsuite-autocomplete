@@ -5,6 +5,7 @@
             <argument name="datasources" xsi:type="array">
                 <item name="catalog_product" xsi:type="array">
                     <item name="url" xsi:type="object">Web200\ElasticsuiteAutocomplete\Model\Indexer\Product\Fulltext\Datasource\Url</item>
+                    <item name="configurable_price" xsi:type="object">Web200\ElasticsuiteAutocomplete\Model\Indexer\Product\Fulltext\Datasource\ConfigurablePrice</item>
                     <item name="additional_attributes" xsi:type="object">Web200\ElasticsuiteAutocomplete\Model\Indexer\Product\Fulltext\Datasource\AdditionalAttributes</item>
                 </item>
                 <item name="catalog_category" xsi:type="array">
