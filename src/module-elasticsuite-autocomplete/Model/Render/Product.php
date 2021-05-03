@@ -139,7 +139,7 @@ class Product
         /** @var int $customerGroupId */
         $customerGroupId = $this->customerSession->getCustomerGroupId();
         if ($customerGroupId >= 0 && isset($prices[$customerGroupId])) {
-            $regularPrice =  $prices[$customerGroupId]['final_price'];
+            $regularPrice =  $prices[$customerGroupId]['original_price'];
             $finalPrice =  $prices[$customerGroupId]['price'];
             $promotion = 0;
             if ($regularPrice != $finalPrice && $regularPrice >0) {
