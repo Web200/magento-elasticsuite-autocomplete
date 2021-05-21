@@ -143,6 +143,7 @@ class ConfigurablePrice extends Indexer implements DatasourceInterface
             new \Zend_Db_Expr('MIN(price) as original_price')
         ])
             ->where('parent.entity_id IN (?)', $parentIds)
+            ->where('t.price > 0')
             ->group(['parent.entity_id', 't.customer_group_id']);
 
         return $connection->fetchAll($select);
