@@ -1,6 +1,17 @@
 # Magento 2 Elastisuite Autocomplete speed up
 
-Magento 2 Module to speed autocomplete search
+Magento 2 Module to speed autocomplete search with elasticsuite
+
+## Features
+
+This module use :
+- Elasticsearch response
+- Load the minimum magento class to display product (price and image helper)
+- Return only products (with additional_attributes), categories
+
+To improve speed I try two ways of routing :
+- Default magento 2 routing way (by declaring routes.xml and use controller)
+- No routing way (use a search.php file in /pub directory)
 
 ## Installation
 
@@ -9,7 +20,7 @@ Magento 2 Module to speed autocomplete search
 $ composer require "web200/magento-elasticsuite-autocomplete":"*"
 ```
 
-### Github
+### Or Github
 ```
 git clone git@github.com:Web200/magento-elasticsuite-autocomplete.git
 ```
@@ -50,19 +61,8 @@ If you clone the repository don't forget to copy /pub/search.php file (file is c
 # This Module with default magento routing :
 "url":"<?php /* @escapeNotVerified */ echo $block->getUrl('autocomplete'); ?>",
 # This Module without magento routing : 
-"url":"<?php /* @escapeNotVerified */ echo $block->getUrl('search.php'); ?>",
+"url":"<?php /* @escapeNotVerified */ echo $block->getUrl('', ['_direct' => 'search.php']); ?>",
 ```
-
-## Features
-
-This module use :
-- Elasticsearch response
-- Load the minimum magento class to display product (price and image helper)
-- Return only products (with additional_attributes), categories
-
-To improve speed I try two ways of routing :
-- Default magento 2 routing way (by declaring routes.xml and use controller)
-- No routing way (use a search.php file in /pub directory)
 
 ## Benchmarks
 
