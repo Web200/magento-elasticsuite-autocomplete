@@ -3,6 +3,7 @@
 use Magento\Framework\App\Area;
 use Magento\Framework\App\Bootstrap;
 use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Store\Model\StoreManager;
 
 require __DIR__ . '/../app/bootstrap.php';
 
@@ -16,6 +17,7 @@ $params[Bootstrap::INIT_PARAM_FILESYSTEM_DIR_PATHS] = array_replace_recursive(
     ]
 );
 
+$params[StoreManager::PARAM_RUN_CODE] = $_SERVER[StoreManager::PARAM_RUN_CODE] ?? null;
 $bootstrap = Bootstrap::create(BP, $params);
 
 $obj = $bootstrap->getObjectManager();
