@@ -61,7 +61,7 @@ If you clone the repository don't forget to copy /pub/search.php file (file is c
 # This Module with default magento routing :
 "url":"<?php /* @escapeNotVerified */ echo $block->getUrl('autocomplete'); ?>",
 # This Module without magento routing : 
-"url":"<?php /* @escapeNotVerified */ echo $block->getUrl('', ['_direct' => 'search.php']); ?>",
+"url":"<?= $block->getFormViewModel()->getSearchUrl() ?>",
 ```
 
 ## Benchmarks
