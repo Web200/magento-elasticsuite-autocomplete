@@ -96,16 +96,16 @@ class Product
     public function render(array $productData)
     {
         /** @var string[] $product */
-        $product                = [];
-        $product['type']        = 'product';
-        $product['type_id']     = $productData['_source']['type_id'];
-        $product['title']       = $productData['_source']['name'][0];
-        $product['url']         = $this->generateProductUrl($this->getFirstResult($productData['_source']['request_path']));
-        $product['sku']         = $this->getFirstResult($productData['_source']['sku']);
-        $product['image']       = $this->generateImageUrl($this->getFirstResult($productData['_source']['image']));
+        $product            = [];
+        $product['type']    = 'product';
+        $product['type_id'] = $productData['_source']['type_id'];
+        $product['title']   = $productData['_source']['name'][0];
+        $product['url']     = $this->generateProductUrl($productData);
+        $product['sku']     = $this->getFirstResult($productData['_source']['sku']);
+        $product['image']   = $this->generateImageUrl($this->getFirstResult($productData['_source']['image']));
         list($product['regular_price_value'], $product['price_value'], $product['promotion_percentage']) = $this->getPriceValue($productData);
-        $product['price']       = $this->getPrice($product, 'price_value');
-        $product['regular_price']  = $this->getPrice($product, 'regular_price_value');
+        $product['price']         = $this->getPrice($product, 'price_value');
+        $product['regular_price'] = $this->getPrice($product, 'regular_price_value');
 
         $additionalAttributes = $this->attributeConfig->getAdditionalSelectedAttributes();
         foreach ($additionalAttributes as $key) {
@@ -139,12 +139,13 @@ class Product
         /** @var int $customerGroupId */
         $customerGroupId = $this->customerSession->getCustomerGroupId();
         if ($customerGroupId >= 0 && isset($prices[$customerGroupId])) {
-            $regularPrice =  $prices[$customerGroupId]['original_price'];
-            $finalPrice =  $prices[$customerGroupId]['price'];
-            $promotion = 0;
-            if ($regularPrice != $finalPrice && $regularPrice >0) {
-                $promotion = round(100 - ($finalPrice*100 /$regularPrice), 2);
+            $regularPrice = $prices[$customerGroupId]['original_price'];
+            $finalPrice   = $prices[$customerGroupId]['price'];
+            $promotion    = 0;
+            if ($regularPrice != $finalPrice && $regularPrice > 0) {
+                $promotion = round(100 - ($finalPrice * 100 / $regularPrice), 2);
             }
+
             return [
                 $regularPrice,
                 $finalPrice,
@@ -152,7 +153,7 @@ class Product
             ];
         }
 
-        return ['', '' , ''];
+        return ['', '', ''];
     }
 
     /**
@@ -193,13 +194,15 @@ class Product
     /**
      * Generate product url
      *
-     * @param string $requestPath
+     * @param array $productData
      *
      * @return string
      */
-    protected function generateProductUrl(string $requestPath): string
+    protected function generateProductUrl(array $productData): string
     {
-        return $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB) . $requestPath;
+        $requestPath = $productData['_source']['request_path'] ?? $productData['_source']['url_key'];
+
+        return $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB) . $this->getFirstResult($requestPath);
     }
 
     /**

@@ -50,7 +50,7 @@ class Category
 
         $category['type']       = 'category';
         $category['title']      = $this->getFirstResult($categoryData['_source']['name']);
-        $category['url']        = $this->generateCategoryUrl($this->getFirstResult($categoryData['_source']['request_path']));
+        $category['url']        = $this->generateCategoryUrl($categoryData);
         $category['breadcrumb'] = explode('/', $categoryData['_source']['breadcrumb']);
 
         return $category;
@@ -75,12 +75,14 @@ class Category
     /**
      * Generate category url
      *
-     * @param string $requestPath
+     * @param array $categoryData
      *
      * @return string
      */
-    protected function generateCategoryUrl(string $requestPath): string
+    protected function generateCategoryUrl(array $categoryData): string
     {
-        return $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB) . $requestPath;
+        $requestPath = $categoryData['_source']['request_path'] ?? $categoryData['_source']['url_key'];
+
+        return $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB) . $this->getFirstResult($requestPath);
     }
 }

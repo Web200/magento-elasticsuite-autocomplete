@@ -18,7 +18,7 @@ $params[Bootstrap::INIT_PARAM_FILESYSTEM_DIR_PATHS] = array_replace_recursive(
 );
 
 $params[StoreManager::PARAM_RUN_CODE] = $_SERVER[StoreManager::PARAM_RUN_CODE] ?? null;
-if ($_REQUEST['store_code']) {
+if (isset($_REQUEST['store_code'])) {
     $params[StoreManager::PARAM_RUN_CODE] = $_REQUEST['store_code'];
 }
 $bootstrap = Bootstrap::create(BP, $params);
