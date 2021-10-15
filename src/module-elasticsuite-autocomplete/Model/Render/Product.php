@@ -6,9 +6,12 @@ namespace Web200\ElasticsuiteAutocomplete\Model\Render;
 
 use Magento\Catalog\Helper\Image;
 use Magento\Catalog\Model\ProductFactory;
+use Magento\CatalogUrlRewrite\Model\ProductUrlPathGenerator;
 use Magento\Customer\Model\Session;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Pricing\Helper\Data;
 use Magento\Framework\UrlInterface;
+use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Smile\ElasticsuiteCatalog\Model\Autocomplete\Product\AttributeConfig;
 
@@ -59,11 +62,18 @@ class Product
      * @var Data $priceHelper
      */
     protected $priceHelper;
+    /**
+     * scopeConfig
+     *
+     * @var ScopeConfigInterface $scopeConfig
+     */
+    protected $scopeConfig;
 
     /**
      * Product constructor.
      *
      * @param AttributeConfig       $attributeConfig
+     * @param ScopeConfigInterface  $scopeConfig
      * @param StoreManagerInterface $storeManager
      * @param Data                  $priceHelper
      * @param Image                 $imageHelper
@@ -72,6 +82,7 @@ class Product
      */
     public function __construct(
         AttributeConfig $attributeConfig,
+        ScopeConfigInterface $scopeConfig,
         StoreManagerInterface $storeManager,
         Data $priceHelper,
         Image $imageHelper,
@@ -84,6 +95,7 @@ class Product
         $this->customerSession = $customerSession;
         $this->attributeConfig = $attributeConfig;
         $this->priceHelper     = $priceHelper;
+        $this->scopeConfig = $scopeConfig;
     }
 
     /**
@@ -96,16 +108,16 @@ class Product
     public function render(array $productData)
     {
         /** @var string[] $product */
-        $product                = [];
-        $product['type']        = 'product';
-        $product['type_id']     = $productData['_source']['type_id'];
-        $product['title']       = $productData['_source']['name'][0];
-        $product['url']         = $this->generateProductUrl($this->getFirstResult($productData['_source']['request_path']));
-        $product['sku']         = $this->getFirstResult($productData['_source']['sku']);
-        $product['image']       = $this->generateImageUrl($this->getFirstResult($productData['_source']['image']));
+        $product            = [];
+        $product['type']    = 'product';
+        $product['type_id'] = $productData['_source']['type_id'];
+        $product['title']   = $productData['_source']['name'][0];
+        $product['url']     = $this->generateProductUrl($productData);
+        $product['sku']     = $this->getFirstResult($productData['_source']['sku']);
+        $product['image']   = $this->generateImageUrl($this->getFirstResult($productData['_source']['image']));
         list($product['regular_price_value'], $product['price_value'], $product['promotion_percentage']) = $this->getPriceValue($productData);
-        $product['price']       = $this->getPrice($product, 'price_value');
-        $product['regular_price']  = $this->getPrice($product, 'regular_price_value');
+        $product['price']         = $this->getPrice($product, 'price_value');
+        $product['regular_price'] = $this->getPrice($product, 'regular_price_value');
 
         $additionalAttributes = $this->attributeConfig->getAdditionalSelectedAttributes();
         foreach ($additionalAttributes as $key) {
@@ -139,12 +151,13 @@ class Product
         /** @var int $customerGroupId */
         $customerGroupId = $this->customerSession->getCustomerGroupId();
         if ($customerGroupId >= 0 && isset($prices[$customerGroupId])) {
-            $regularPrice =  $prices[$customerGroupId]['original_price'];
-            $finalPrice =  $prices[$customerGroupId]['price'];
-            $promotion = 0;
-            if ($regularPrice != $finalPrice && $regularPrice >0) {
-                $promotion = round(100 - ($finalPrice*100 /$regularPrice), 2);
+            $regularPrice = $prices[$customerGroupId]['original_price'];
+            $finalPrice   = $prices[$customerGroupId]['price'];
+            $promotion    = 0;
+            if ($regularPrice != $finalPrice && $regularPrice > 0) {
+                $promotion = round(100 - ($finalPrice * 100 / $regularPrice), 2);
             }
+
             return [
                 $regularPrice,
                 $finalPrice,
@@ -152,7 +165,7 @@ class Product
             ];
         }
 
-        return ['', '' , ''];
+        return ['', '', ''];
     }
 
     /**
@@ -193,12 +206,19 @@ class Product
     /**
      * Generate product url
      *
-     * @param string $requestPath
+     * @param array $productData
      *
      * @return string
      */
-    protected function generateProductUrl(string $requestPath): string
+    protected function generateProductUrl(array $productData): string
     {
+        if (isset($productData['_source']['request_path'])) {
+            $requestPath =  $this->getFirstResult($productData['_source']['request_path']);
+        } else {
+            $suffix = (string)$this->scopeConfig->getValue(ProductUrlPathGenerator::XML_PATH_PRODUCT_URL_SUFFIX, ScopeInterface::SCOPE_STORE);
+            $requestPath = $this->getFirstResult($productData['_source']['url_key']) .".html";
+        }
+
         return $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB) . $requestPath;
     }
 

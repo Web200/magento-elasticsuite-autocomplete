@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Web200\ElasticsuiteAutocomplete\Model\Render;
 
+use Magento\CatalogUrlRewrite\Model\CategoryUrlPathGenerator;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\UrlInterface;
+use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
 /**
@@ -24,16 +27,25 @@ class Category
      * @var StoreManagerInterface $storeManager
      */
     protected $storeManager;
+    /**
+     * ScopeConfig
+     *
+     * @var ScopeConfigInterface $scopeConfig
+     */
+    protected $scopeConfig;
 
     /**
      * Product constructor.
      *
+     * @param ScopeConfigInterface  $scopeConfig
      * @param StoreManagerInterface $storeManager
      */
     public function __construct(
+        ScopeConfigInterface $scopeConfig,
         StoreManagerInterface $storeManager
     ) {
         $this->storeManager = $storeManager;
+        $this->scopeConfig = $scopeConfig;
     }
 
     /**
@@ -50,7 +62,7 @@ class Category
 
         $category['type']       = 'category';
         $category['title']      = $this->getFirstResult($categoryData['_source']['name']);
-        $category['url']        = $this->generateCategoryUrl($this->getFirstResult($categoryData['_source']['request_path']));
+        $category['url']        = $this->generateCategoryUrl($categoryData);
         $category['breadcrumb'] = explode('/', $categoryData['_source']['breadcrumb']);
 
         return $category;
@@ -75,12 +87,19 @@ class Category
     /**
      * Generate category url
      *
-     * @param string $requestPath
+     * @param array $categoryData
      *
      * @return string
      */
-    protected function generateCategoryUrl(string $requestPath): string
+    protected function generateCategoryUrl(array $categoryData): string
     {
-        return $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB) . $requestPath;
+        if (isset($productData['_source']['request_path'])) {
+            $requestPath =  $this->getFirstResult($categoryData['_source']['request_path']);
+        } else {
+            $suffix = (string)$this->scopeConfig->getValue(CategoryUrlPathGenerator::XML_PATH_CATEGORY_URL_SUFFIX, ScopeInterface::SCOPE_STORE);
+            $requestPath = $this->getFirstResult($categoryData['_source']['url_key']) . $suffix;
+        }
+
+        return $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB) . $this->getFirstResult($requestPath);
     }
 }
