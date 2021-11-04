@@ -216,10 +216,10 @@ class Product
             $requestPath =  $this->getFirstResult($productData['_source']['request_path']);
         } else {
             $suffix = (string)$this->scopeConfig->getValue(ProductUrlPathGenerator::XML_PATH_PRODUCT_URL_SUFFIX, ScopeInterface::SCOPE_STORE);
-            $requestPath = $this->getFirstResult($productData['_source']['url_key']) .".html";
+            $requestPath = $this->getFirstResult($productData['_source']['url_key']) . $suffix;
         }
 
-        return $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB) . $requestPath;
+        return $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_LINK) . $requestPath;
     }
 
     /**

@@ -100,6 +100,6 @@ class Category
             $requestPath = $this->getFirstResult($categoryData['_source']['url_key']) . $suffix;
         }
 
-        return $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB) . $this->getFirstResult($requestPath);
+        return $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_LINK) . $this->getFirstResult($requestPath);
     }
 }
