@@ -193,7 +193,7 @@ class Product
         }
 
         if ($this->config->isWildcard()) {
-            $query['body']['query'] = ['query_string' => ['query' => $searchString]];
+            $query['body']['query']['bool']['must']['bool']['must'] = ['query_string' => ['query' => $searchString]];
         }
 
         return $this->client->search($query);
