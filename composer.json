@@ -2,7 +2,7 @@
     "name": "web200/magento-elasticsuite-autocomplete",
     "description": "Magento 2 Module to speed autocomplete search",
     "require": {
-        "php": "^7.0"
+        "php": "^7.0|^8.0"
     },
     "type": "magento2-component",
     "license": [
