@@ -193,6 +193,7 @@ class Product
         }
 
         if ($this->config->isWildcard()) {
+            unset($query['body']['query']['bool']['must']['bool']['filter']);
             $query['body']['query']['bool']['must']['bool']['must'] = ['query_string' => ['query' => $searchString]];
         }
 
