@@ -6,9 +6,11 @@ namespace Web200\ElasticsuiteAutocomplete\Model\Query;
 
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\Serialize\Serializer\Json;
+use Magento\Search\Model\Autocomplete\Item as TermItem;
 use Magento\Search\Model\QueryFactory;
 use Magento\Store\Model\StoreManagerInterface;
 use Smile\ElasticsuiteCore\Client\Client;
+use Smile\ElasticsuiteCore\Model\Autocomplete\Terms\DataProvider as TermDataProvider;
 use Smile\ElasticsuiteCore\Search\Adapter\Elasticsuite\Request\Mapper;
 use Smile\ElasticsuiteCore\Search\Request\BucketInterface;
 use Smile\ElasticsuiteCore\Search\Request\Builder;
@@ -80,6 +82,12 @@ class Product
      * @var Config $config
      */
     protected $config;
+    /**
+     * Config
+     *
+     * @var TermDataProvider $termDataProvider
+     */
+    protected $termDataProvider;
 
     /**
      * Product constructor.
@@ -93,6 +101,7 @@ class Product
      * @param RenderProduct         $productRender
      * @param QueryFactory          $queryFactory
      * @param Client                $client
+     * @param TermDataProvider      $termDataProvider
      */
     public function __construct(
         Config $config,
@@ -103,17 +112,19 @@ class Product
         Json $json,
         RenderProduct $productRender,
         QueryFactory $queryFactory,
-        Client $client
+        Client $client,
+        TermDataProvider $termDataProvider
     ) {
-        $this->client         = $client;
-        $this->requestMapper  = $mapper;
-        $this->requestBuilder = $requestBuilder;
-        $this->storeManager   = $storeManager;
-        $this->cache          = $cache;
-        $this->json           = $json;
-        $this->productRender  = $productRender;
-        $this->queryFactory   = $queryFactory;
-        $this->config = $config;
+        $this->client           = $client;
+        $this->requestMapper    = $mapper;
+        $this->requestBuilder   = $requestBuilder;
+        $this->storeManager     = $storeManager;
+        $this->cache            = $cache;
+        $this->json             = $json;
+        $this->productRender    = $productRender;
+        $this->queryFactory     = $queryFactory;
+        $this->config           = $config;
+        $this->termDataProvider = $termDataProvider;
     }
 
     /**
@@ -131,7 +142,7 @@ class Product
      *
      * @return string[]
      */
-    protected function buildQuery()
+    protected function buildQuery($searchString)
     {
         /** @var int $storeId */
         $storeId = $this->storeManager->getStore()->getId();
@@ -150,7 +161,7 @@ class Product
                 'catalog_product_autocomplete',
                 0,
                 $this->config->getProductAutocompleteMaxSize(),
-                'product',
+                $this->getSearchTerm(),
                 [],
                 [],
                 [],
@@ -170,6 +181,27 @@ class Product
     }
 
     /**
+     * Get search Term
+     *
+     * @return array|null[]|string[]
+     */
+    protected function getSearchTerm()
+    {
+        $terms = array_map(
+            function (TermItem $termItem) {
+                return $termItem->getTitle();
+            },
+            $this->termDataProvider->getItems()
+        );
+
+        if (empty($terms)) {
+            $terms = [$this->queryFactory->get()->getQueryText()];
+        }
+
+        return $terms;
+    }
+
+    /**
      * Query
      *
      * @return string[]
@@ -179,8 +211,7 @@ class Product
         /** @var string $searchString */
         $searchString = $this->queryFactory->get()->getQueryText();
 
-        /** @var string[] $query */
-        $query = $this->buildQuery();
+        $query = $this->buildQuery($searchString);
         if (isset($query['body']['query']['bool']['must']['bool']['filter']['multi_match'])) {
             $query['body']['query']['bool']['must']['bool']['filter']['multi_match']['query'] = $searchString;
             $query['body']['query']['bool']['must']['bool']['must']['multi_match']['query']   = $searchString;
@@ -194,7 +225,9 @@ class Product
 
         if ($this->config->isWildcard()) {
             unset($query['body']['query']['bool']['must']['bool']['filter']);
+            unset($query['body']['query']['bool']['must']['bool']['should']);
             $query['body']['query']['bool']['must']['bool']['must'] = ['query_string' => ['query' => $searchString]];
+            $query['body']['query']['bool']['must']['bool']['minimum_should_match'] = '75%';
         }
 
         return $this->client->search($query);
