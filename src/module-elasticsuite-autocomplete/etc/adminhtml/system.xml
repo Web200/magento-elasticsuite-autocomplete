@@ -8,11 +8,6 @@
                     <label>Enable</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="wildcard" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Use Wildcard (edge_ngram)</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[You need to add xml configuration files see : <a href="https://github.com/Web200/magento-elasticsuite-autocomplete">here</a>]]></comment>
-                </field>
             </group>
             <group id="product_attribute_autocomplete" translate="label" type="text" showInDefault="0" showInWebsite="0" showInStore="0" />
             <group id="category_autocomplete" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">

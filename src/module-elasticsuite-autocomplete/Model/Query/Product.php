@@ -142,42 +142,34 @@ class Product
      *
      * @return string[]
      */
-    protected function buildQuery($searchString)
+    protected function buildQuery()
     {
         /** @var int $storeId */
         $storeId = $this->storeManager->getStore()->getId();
-        /** @var string $key */
-        $key = 'smile_autocomplete_product_query:' . $storeId;
-        /** @var string $searchRequestJson */
-        $searchRequestJson = $this->cache->load($key);
-        if ($searchRequestJson === false) {
-            /** @var string[] $facets */
-            $facets  = [
-                ['name' => 'attribute_set_id', 'type' => BucketInterface::TYPE_TERM, 'size' => 0],
-                ['name' => 'indexed_attributes', 'type' => BucketInterface::TYPE_TERM, 'size' => 0],
-            ];
-            $request = $this->requestBuilder->create(
-                $storeId,
-                'catalog_product_autocomplete',
-                0,
-                $this->config->getProductAutocompleteMaxSize(),
-                $this->getSearchTerm(),
-                [],
-                [],
-                [],
-                $facets
-            );
-            /** @var string[] $searchRequest */
-            $searchRequest = [
-                'index' => $request->getIndex(),
-                'body'  => $this->requestMapper->buildSearchRequest($request),
-            ];
-            $this->cache->save($this->json->serialize($searchRequest), $key, ['autocomplete'], 3600);
 
-            return $searchRequest;
-        }
+        /** @var string[] $facets */
+        $facets  = [
+            ['name' => 'attribute_set_id', 'type' => BucketInterface::TYPE_TERM, 'size' => 0],
+            ['name' => 'indexed_attributes', 'type' => BucketInterface::TYPE_TERM, 'size' => 0],
+        ];
+        $request = $this->requestBuilder->create(
+            $storeId,
+            'catalog_product_autocomplete',
+            0,
+            $this->config->getProductAutocompleteMaxSize(),
+            $this->getSearchTerm(),
+            [],
+            [],
+            [],
+            $facets
+        );
+        /** @var string[] $searchRequest */
+        $searchRequest = [
+            'index' => $request->getIndex(),
+            'body'  => $this->requestMapper->buildSearchRequest($request),
+        ];
 
-        return $this->json->unserialize($searchRequestJson);
+        return $searchRequest;
     }
 
     /**
@@ -208,29 +200,7 @@ class Product
      */
     protected function query(): array
     {
-        /** @var string $searchString */
-        $searchString = $this->queryFactory->get()->getQueryText();
-
-        $query = $this->buildQuery($searchString);
-        if (isset($query['body']['query']['bool']['must']['bool']['filter']['multi_match'])) {
-            $query['body']['query']['bool']['must']['bool']['filter']['multi_match']['query'] = $searchString;
-            $query['body']['query']['bool']['must']['bool']['must']['multi_match']['query']   = $searchString;
-        }
-
-        if (isset($query['body']['query']['bool']['must']['bool']['should'])) {
-            foreach ($query['body']['query']['bool']['must']['bool']['should'] as &$should) {
-                $should['multi_match']['query'] = $searchString;
-            }
-        }
-
-        if ($this->config->isWildcard()) {
-            unset($query['body']['query']['bool']['must']['bool']['filter']);
-            unset($query['body']['query']['bool']['must']['bool']['should']);
-            $query['body']['query']['bool']['must']['bool']['must'] = ['query_string' => ['query' => $searchString]];
-            $query['body']['query']['bool']['must']['bool']['minimum_should_match'] = '75%';
-        }
-
-        return $this->client->search($query);
+        return $this->client->search($this->buildQuery());
     }
 
     /**
