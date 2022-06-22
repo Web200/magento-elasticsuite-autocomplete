@@ -8,7 +8,7 @@
                     <label>Enable</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="improve_search_active" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="improve_search_active" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Improve search</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>Add prefix and fuzziness search for queries.</comment>
