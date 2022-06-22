@@ -8,6 +8,11 @@
                     <label>Enable</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="improve_search_active" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Improve search</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Add prefix and fuzziness search for queries.</comment>
+                </field>
             </group>
             <group id="product_attribute_autocomplete" translate="label" type="text" showInDefault="0" showInWebsite="0" showInStore="0" />
             <group id="category_autocomplete" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">

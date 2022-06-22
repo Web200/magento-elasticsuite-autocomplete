@@ -22,6 +22,7 @@ class Config
 {
     public const CATEGORY_ACTIVE = 'smile_elasticsuite_autocomplete_settings/category_autocomplete/is_active';
     public const PRODUCT_ACTIVE = 'smile_elasticsuite_autocomplete_settings/product_autocomplete/is_active';
+    public const IMPROVE_SEARCH_ACTIVE = 'smile_elasticsuite_autocomplete_settings/product_autocomplete/improve_search_active';
     public const PRODUCT_MAX_SIZE = 'smile_elasticsuite_autocomplete_settings/product_autocomplete/max_size';
     public const CATEGORY_MAX_SIZE = 'smile_elasticsuite_autocomplete_settings/category_autocomplete/max_size';
     /**
@@ -69,6 +70,22 @@ class Config
     {
         return (bool)$this->scopeConfig->getValue(
             self::PRODUCT_ACTIVE,
+            ScopeInterface::SCOPE_STORES,
+            $store
+        );
+    }
+
+    /**
+     * Is improve search active
+     *
+     * @param null $store
+     *
+     * @return bool
+     */
+    public function isImproveSearchActive($store = null): bool
+    {
+        return (bool)$this->scopeConfig->getValue(
+            self::IMPROVE_SEARCH_ACTIVE,
             ScopeInterface::SCOPE_STORES,
             $store
         );
