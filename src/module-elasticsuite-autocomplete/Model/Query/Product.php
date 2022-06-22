@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Web200\ElasticsuiteAutocomplete\Model\Query;
 
 use Magento\Framework\App\CacheInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Search\Model\Autocomplete\Item as TermItem;
 use Magento\Search\Model\QueryFactory;
@@ -141,6 +142,7 @@ class Product
      * BuildQuery
      *
      * @return string[]
+     * @throws NoSuchEntityException
      */
     protected function buildQuery()
     {
