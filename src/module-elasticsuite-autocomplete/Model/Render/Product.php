@@ -116,6 +116,9 @@ class Product
         $product['sku']     = $this->getFirstResult($productData['_source']['sku']);
         $product['image']   = $this->generateImageUrl($this->getFirstResult($productData['_source']['image']));
         list($product['regular_price_value'], $product['price_value'], $product['promotion_percentage']) = $this->getPriceValue($productData);
+        if ($product['price_value'] <= 0) {
+            $product['price_value'] = $this->getPrice($product, 'regular_price_value');
+        }
         $product['price']         = $this->getPrice($product, 'price_value');
         $product['regular_price'] = $this->getPrice($product, 'regular_price_value');
 
@@ -153,6 +156,9 @@ class Product
         if ($customerGroupId >= 0 && isset($prices[$customerGroupId])) {
             $regularPrice = $prices[$customerGroupId]['original_price'];
             $finalPrice   = $prices[$customerGroupId]['price'];
+            if ($finalPrice <= 0) {
+                $finalPrice = $regularPrice;
+            }
             $promotion    = 0;
             if ($regularPrice != $finalPrice && $regularPrice > 0) {
                 $promotion = round(100 - ($finalPrice * 100 / $regularPrice), 2);
