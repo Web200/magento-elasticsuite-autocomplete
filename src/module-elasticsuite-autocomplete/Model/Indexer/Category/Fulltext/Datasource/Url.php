@@ -46,7 +46,9 @@ class Url implements DatasourceInterface
         $requestPathData = $this->getRequestPathData((int)$storeId);
         /** @var string[] $data */
         foreach ($requestPathData as $data) {
-            $indexData[(int)$data['entity_id']]['request_path'] = $data['request_path'];
+            if (isset($indexData[(int)$data['entity_id']])) {
+                $indexData[(int)$data['entity_id']]['request_path'] = $data['request_path'];
+            }
         }
 
         return $indexData;
