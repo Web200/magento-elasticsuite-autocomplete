@@ -231,12 +231,16 @@ class Product
     /**
      * Generate image url
      *
-     * @param string $imagePath
+     * @param null|string $imagePath
      *
      * @return string
      */
-    protected function generateImageUrl(string $imagePath): string
+    protected function generateImageUrl(?string $imagePath): string
     {
+        if ($imagePath === null) {
+            return '';
+        }
+
         $product = $this->productFactory->create();
 
         return $this->imageHelper->init($product, 'smile_elasticsuite_autocomplete_product_image')
