@@ -94,8 +94,12 @@ class ConfigurablePrice extends Indexer implements DatasourceInterface
             return $indexData;
         }
 
+
         $websiteId         = (int)$this->getStore($storeId)->getWebsiteId();
-        $minFinalPriceData = $this->getMinFinalPrice($configurableIds, $websiteId);
+        $minFinalPriceData = $this->getMinFinalPrice($configurableIds, $websiteId, true);
+        if (empty($minFinalPriceData)) {
+            $minFinalPriceData = $this->getMinFinalPrice($configurableIds, $websiteId, false);
+        }
         if (empty($minFinalPriceData)) {
             return $indexData;
         }
@@ -120,10 +124,11 @@ class ConfigurablePrice extends Indexer implements DatasourceInterface
      *
      * @param array $parentIds
      * @param int   $websiteId
+     * @param bool  $inStock
      *
      * @return array
      */
-    protected function getMinFinalPrice(array $parentIds, int $websiteId): array
+    protected function getMinFinalPrice(array $parentIds, int $websiteId, bool $inStock): array
     {
         $connection = $this->resource->getConnection();
         $select     = $connection->select()->from(
@@ -139,7 +144,7 @@ class ConfigurablePrice extends Indexer implements DatasourceInterface
             []
         )->join(
             ['csi' => $connection->getTableName('cataloginventory_stock_item')],
-            'csi.product_id = link.child_id AND csi.is_in_stock=1',
+            'csi.product_id = link.child_id AND csi.is_in_stock=' . $inStock ? '1' : '0',
             []
         )->columns([
             new \Zend_Db_Expr('t.customer_group_id'),
