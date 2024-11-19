@@ -132,18 +132,18 @@ class ConfigurablePrice extends Indexer implements DatasourceInterface
     {
         $connection = $this->resource->getConnection();
         $select     = $connection->select()->from(
-            ['parent' => $connection->getTableName('catalog_product_entity')],
+            ['parent' => $this->resource->getTableName('catalog_product_entity')],
             []
         )->join(
-            ['link' => $connection->getTableName('catalog_product_relation')],
+            ['link' => $this->resource->getTableName('catalog_product_relation')],
             'link.parent_id = parent.entity_id',
             []
         )->join(
-            ['t' => $connection->getTableName($this->getPriceIndexDimensionsTables($websiteId))],
+            ['t' => $this->resource->getTableName($this->getPriceIndexDimensionsTables($websiteId))],
             't.entity_id = link.child_id ',
             []
         )->join(
-            ['csi' => $connection->getTableName('cataloginventory_stock_item')],
+            ['csi' => $this->resource->getTableName('cataloginventory_stock_item')],
             'csi.product_id = link.child_id AND csi.is_in_stock=' . $inStock ? '1' : '0',
             []
         )->columns([
