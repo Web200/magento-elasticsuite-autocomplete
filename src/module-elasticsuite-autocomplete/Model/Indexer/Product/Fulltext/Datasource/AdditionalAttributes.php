@@ -137,7 +137,7 @@ class AdditionalAttributes implements DatasourceInterface
         }
 
         $connection = $this->resource->getConnection();
-        $tableName  = $connection->getTableName('catalog_product_entity_' . $attribute->getBackendType());
+        $tableName  = $this->resource->getTableName('catalog_product_entity_' . $attribute->getBackendType());
         $select     = $connection->select()->from(
             ['cpe_default' => $tableName],
             []
