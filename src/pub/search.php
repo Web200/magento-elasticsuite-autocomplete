@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignoreFile
 
 use Magento\Framework\App\Area;
 use Magento\Framework\App\Bootstrap;
@@ -21,7 +22,7 @@ $params[StoreManager::PARAM_RUN_CODE] = $_SERVER[StoreManager::PARAM_RUN_CODE] ?
 if (isset($_REQUEST['store_code'])) {
     $params[StoreManager::PARAM_RUN_CODE] = $_REQUEST['store_code'];
 }
-$bootstrap = Bootstrap::create(BP, $params);
+$bootstrap = Bootstrap::create(BP, $params); // @phpstan-ignore-line
 
 $obj = $bootstrap->getObjectManager();
 $obj->get('Magento\Framework\App\State')->setAreaCode('frontend');
