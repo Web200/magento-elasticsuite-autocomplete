@@ -167,7 +167,7 @@ class Category
         $searchRequestJson = str_replace(
             self::QUERY_PLACEHOLDER,
             $this->queryFactory->get()->getQueryText(),
-            $searchRequestJson
+            (string)$searchRequestJson
         );
 
         return $this->json->unserialize($searchRequestJson);
