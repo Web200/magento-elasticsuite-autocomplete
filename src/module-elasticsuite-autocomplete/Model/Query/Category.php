@@ -25,6 +25,8 @@ use Web200\ElasticsuiteAutocomplete\Provider\Config;
  */
 class Category
 {
+    private const QUERY_PLACEHOLDER = '%QUERY_PLACEHOLDER%';
+
     /**
      * Client
      *
@@ -144,7 +146,7 @@ class Category
                 'category_search_container',
                 0,
                 $this->config->getCategoryAutocompleteMaxSize(),
-                'product',
+                self::QUERY_PLACEHOLDER,
                 [],
                 [],
                 []
@@ -154,10 +156,19 @@ class Category
                 'index' => $request->getIndex(),
                 'body'  => $this->requestMapper->buildSearchRequest($request),
             ];
-            $this->cache->save($this->json->serialize($searchRequest), $key, ['autocomplete'], 3600);
-
-            return $searchRequest;
+            $searchRequestJson = $this->json->serialize($searchRequest);
+            $this->cache->save($searchRequestJson, $key, ['autocomplete'], 3600);
         }
+
+        /**
+         * The generic query is cached with a placeholder for speeeeed. Replace any exact instances of QUERY_PLACEHOLDER
+         * with $searchString. This handles differences in exact query format across various ES/OS versions.
+         */
+        $searchRequestJson = str_replace(
+            self::QUERY_PLACEHOLDER,
+            $this->queryFactory->get()->getQueryText(),
+            $searchRequestJson
+        );
 
         return $this->json->unserialize($searchRequestJson);
     }
@@ -169,16 +180,8 @@ class Category
      */
     protected function query(): array
     {
-        /** @var string $searchString */
-        $searchString = $this->queryFactory->get()->getQueryText();
-
         /** @var string[] $query */
         $query = $this->buildQuery();
-        if (isset($query['body']['query']['bool']['must']['bool']['should'])) {
-            foreach ($query['body']['query']['bool']['must']['bool']['should'] as &$should) {
-                $should['multi_match']['query'] = $searchString;
-            }
-        }
 
         return $this->client->search($query);
     }
