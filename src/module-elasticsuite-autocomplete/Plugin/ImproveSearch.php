@@ -369,7 +369,7 @@ class ImproveSearch
     private function getWeightedFields(
         ContainerConfigurationInterface $containerConfig,
         $analyzer = null,
-        FieldFilterInterface $fieldFilter = null,
+        ?FieldFilterInterface $fieldFilter = null,
         $defaultField = null,
         $boost = 1
     ) {
