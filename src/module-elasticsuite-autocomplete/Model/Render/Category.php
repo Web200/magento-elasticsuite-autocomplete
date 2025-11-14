@@ -97,7 +97,7 @@ class Category
             $requestPath =  $this->getFirstResult($categoryData['_source']['request_path']);
         } else {
             $suffix = (string)$this->scopeConfig->getValue(CategoryUrlPathGenerator::XML_PATH_CATEGORY_URL_SUFFIX, ScopeInterface::SCOPE_STORE);
-            $requestPath = $this->getFirstResult($categoryData['_source']['url_key']) . $suffix;
+            $requestPath = $this->getFirstResult($categoryData['_source']['url_path']) . $suffix;
         }
 
         return $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_LINK) . $this->getFirstResult($requestPath);
