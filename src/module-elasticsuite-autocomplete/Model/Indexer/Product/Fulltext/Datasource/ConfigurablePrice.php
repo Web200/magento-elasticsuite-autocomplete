@@ -143,8 +143,8 @@ class ConfigurablePrice extends Indexer implements DatasourceInterface
             't.entity_id = link.child_id ',
             []
         )->join(
-            ['csi' => $this->resource->getTableName('cataloginventory_stock_item')],
-            'csi.product_id = link.child_id AND csi.is_in_stock=' . $inStock ? '1' : '0',
+            ['csi' => $connection->getTableName('cataloginventory_stock_item')],
+            'csi.product_id = link.child_id AND csi.is_in_stock=' . ($inStock ? '1' : '0'),
             []
         )->columns([
             new \Zend_Db_Expr('t.customer_group_id'),

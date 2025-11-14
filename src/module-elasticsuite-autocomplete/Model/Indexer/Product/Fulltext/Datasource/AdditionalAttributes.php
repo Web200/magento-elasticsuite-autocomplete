@@ -170,6 +170,7 @@ class AdditionalAttributes implements DatasourceInterface
     {
         $sourceModel  = $this->objectManager->get($attribute->getSourceModel());
         $options      = [];
+        $sourceModel->setAttribute($attribute);
         $optionsArray = $sourceModel->toOptionArray();
         foreach ($optionsArray as $row) {
             $options[$row['value']] = $row['label'];
