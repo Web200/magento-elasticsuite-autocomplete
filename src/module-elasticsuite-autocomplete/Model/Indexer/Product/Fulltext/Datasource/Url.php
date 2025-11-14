@@ -64,7 +64,7 @@ class Url implements DatasourceInterface
     {
         $connection = $this->resource->getConnection();
         $select     = $connection->select()->from(
-            ['url_rewrite' => $connection->getTableName('url_rewrite')],
+            ['url_rewrite' => $this->resource->getTableName('url_rewrite')],
             ['request_path', 'entity_id']
         )->where('entity_type = ?', 'product')
             ->where('entity_id IN (?)', $productId)
