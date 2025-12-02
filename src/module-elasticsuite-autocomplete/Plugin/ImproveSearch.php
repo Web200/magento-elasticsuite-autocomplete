@@ -137,10 +137,50 @@ class ImproveSearch
             $queries[] = $this->getPhrasePrefixSearchQuery($containerConfig, $queryText);
             $queries[] = $this->getFuzzyQuery($containerConfig, $queryText);
 
+            if (is_string($queryText) && str_word_count($queryText) === 1) {
+                $queries[] = $this->getPrefixQuery($containerConfig, $queryText);
+            }
+
             $query = $this->queryFactory->create(QueryInterface::TYPE_BOOL, ['should' => $queries, 'boost' => $boost]);
         }
 
         return $query;
+    }
+
+    /**
+     * Provides a prefix search query to handle cases like "casto" -> "castorama".
+     *
+     * @param ContainerConfigurationInterface $containerConfig Search request container configuration.
+     * @param string                          $queryText       The text query.
+     *
+     * @return QueryInterface
+     */
+    private function getPrefixQuery(ContainerConfigurationInterface $containerConfig, $queryText)
+    {
+        $defaultSearchField    = MappingInterface::DEFAULT_SEARCH_FIELD;
+        $searchableFieldFilter = $this->fieldFilters['searchableFieldFilter'];
+
+        // Get fields without specific analyzer (prefix runs on exact terms in the index)
+        $searchFields = $this->getWeightedFields(
+            $containerConfig,
+            null,
+            $searchableFieldFilter,
+            $defaultSearchField
+        );
+
+        $queries = [];
+        foreach ($searchFields as $fieldName => $weight) {
+            $queries[] = $this->queryFactory->create(
+                QueryInterface::TYPE_PREFIX,
+                [
+                    'field' => $fieldName,
+                    'value' => $queryText,
+                    'boost' => $weight
+                ]
+            );
+        }
+
+        return $this->queryFactory->create(QueryInterface::TYPE_BOOL, ['should' => $queries]);
     }
 
     /**
