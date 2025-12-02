@@ -29,10 +29,12 @@ class ImproveSearch
      * @var QueryFactory
      */
     protected $queryFactory;
+
     /**
      * @var FieldFilterInterface[]
      */
     protected $fieldFilters;
+
     /**
      * @var Config $config
      */
@@ -42,7 +44,7 @@ class ImproveSearch
      * Constructor.
      *
      * @param Config                 $config
-     * @param QueryFactory           $queryFactory Query factory (used to build subqueries.
+     * @param QueryFactory           $queryFactory Query factory (used to build subqueries).
      * @param FieldFilterInterface[] $fieldFilters Field filters models.
      */
     public function __construct(
@@ -75,7 +77,24 @@ class ImproveSearch
     ): QueryInterface {
 
         if ($this->config->isImproveSearchActive()) {
-            return $this->create($containerConfig, $queryText, $spellingType);
+            $improvedQuery = $this->create($containerConfig, $queryText, $spellingType);
+
+            // Check if $result contains synonym queries (bool query with should clauses)
+            if ($result->getType() === QueryInterface::TYPE_BOOL && !empty($result->getShould())) {
+                // Merge improved query with synonym queries
+                $queries = $result->getShould();
+
+                // Replace the original query with the improved version, keep synonym queries
+                // Note: This assumes index 0 is always the original query, which is standard ElasticSuite behavior.
+                $queries[0] = $improvedQuery;
+
+                return $this->queryFactory->create(
+                    QueryInterface::TYPE_BOOL,
+                    ['should' => $queries, 'boost' => $result->getBoost()]
+                );
+            }
+
+            return $improvedQuery;
         }
 
         return $result;
