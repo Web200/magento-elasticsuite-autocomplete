@@ -58,7 +58,11 @@ class ConfigurablePrice extends Indexer implements DatasourceInterface
     /**
      * ConfigurablePrice constructor.
      *
-     * @param ResourceConnection $resource
+     * @param ResourceConnection         $resource
+     * @param StoreManagerInterface      $storeManager
+     * @param MetadataPool               $metadataPool
+     * @param DimensionCollectionFactory $dimensionCollectionFactory
+     * @param PriceTableResolver         $priceTableResolver
      */
     public function __construct(
         ResourceConnection $resource,
@@ -87,31 +91,35 @@ class ConfigurablePrice extends Indexer implements DatasourceInterface
             if ($data['type_id'] !== 'configurable') {
                 continue;
             }
-            $configurableIds[] = $data['entity_id'];
+            $configurableIds[] = (int)$data['entity_id'];
         }
 
         if (empty($configurableIds)) {
             return $indexData;
         }
 
+        $websiteId = (int)$this->getStore($storeId)->getWebsiteId();
+        $minFinalPriceData = $this->getMinFinalPrice($configurableIds, $websiteId);
 
-        $websiteId         = (int)$this->getStore($storeId)->getWebsiteId();
-        $minFinalPriceData = $this->getMinFinalPrice($configurableIds, $websiteId, true);
-        if (empty($minFinalPriceData)) {
-            $minFinalPriceData = $this->getMinFinalPrice($configurableIds, $websiteId, false);
-        }
-        if (empty($minFinalPriceData)) {
-            return $indexData;
-        }
-
+        $pricesByEntity = [];
         foreach ($minFinalPriceData as $row) {
-            if (!isset($indexData[$row['entity_id']]['price'])) {
+            $pricesByEntity[$row['entity_id']][$row['customer_group_id']] = $row['original_price'];
+        }
+
+        foreach ($indexData as &$productData) {
+            $entityId = (int)$productData['entity_id'];
+
+            if (!isset($productData['price'])) {
                 continue;
             }
-            foreach ($indexData[$row['entity_id']]['price'] as &$priceRow) {
-                if (isset($priceRow['customer_group_id']) && $priceRow['customer_group_id'] == $row['customer_group_id']) {
-                    $priceRow['original_price'] = $row['original_price'];
-                    break;
+
+            foreach ($productData['price'] as &$priceRow) {
+                $customerGroupId = $priceRow['customer_group_id'] ?? null;
+
+                if ($customerGroupId !== null && isset($pricesByEntity[$entityId][$customerGroupId])) {
+                    $priceRow['original_price'] = (float)$pricesByEntity[$entityId][$customerGroupId];
+                } elseif (!isset($priceRow['original_price']) && isset($priceRow['price'])) {
+                    $priceRow['original_price'] = (float)$priceRow['price'];
                 }
             }
         }
@@ -124,14 +132,14 @@ class ConfigurablePrice extends Indexer implements DatasourceInterface
      *
      * @param array $parentIds
      * @param int   $websiteId
-     * @param bool  $inStock
      *
      * @return array
      */
-    protected function getMinFinalPrice(array $parentIds, int $websiteId, bool $inStock): array
+    protected function getMinFinalPrice(array $parentIds, int $websiteId): array
     {
         $connection = $this->resource->getConnection();
-        $select     = $connection->select()->from(
+
+        $select = $connection->select()->from(
             ['parent' => $this->resource->getTableName('catalog_product_entity')],
             []
         )->join(
@@ -140,11 +148,11 @@ class ConfigurablePrice extends Indexer implements DatasourceInterface
             []
         )->join(
             ['t' => $this->resource->getTableName($this->getPriceIndexDimensionsTables($websiteId))],
-            't.entity_id = link.child_id ',
+            't.entity_id = link.child_id',
             []
         )->join(
             ['csi' => $connection->getTableName('cataloginventory_stock_item')],
-            'csi.product_id = link.child_id AND csi.is_in_stock=' . ($inStock ? '1' : '0'),
+            'csi.product_id = link.child_id',
             []
         )->columns([
             new \Zend_Db_Expr('t.customer_group_id'),
